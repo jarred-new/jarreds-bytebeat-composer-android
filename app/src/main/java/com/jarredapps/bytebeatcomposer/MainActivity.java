@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 	
 	private MainBinding binding;
 	
+    private int fabClicks = 0;
+    
 	private ArrayList<String> bytebeatListStr = new ArrayList<>();
 	private ArrayList<String> logListStr = new ArrayList<>();
 	
@@ -59,18 +61,26 @@ public class MainActivity extends AppCompatActivity {
 	
 	private void initialize(Bundle _savedInstanceState) {
 		setSupportActionBar(binding.Toolbar);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		getSupportActionBar().setHomeButtonEnabled(true);
-		binding.Toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View _v) {
-				onBackPressed();
-			}
-		});
+		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+		getSupportActionBar().setHomeButtonEnabled(false);
+//		binding.Toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View _v) {
+//				onBackPressed();
+//			}
+//		});
 		
 		binding.Fab.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View _view) {
+                fabClicks++;
+                if (fabClicks == 1) {
+                    binding.listlogs.setVisibility(View.VISIBLE);
+                }
+                else if (fabClicks == 2) {
+                    binding.listlogs.setVisibility(View.GONE);
+                    fabClicks = 0;
+                }
 				_isLogVisible();
 			}
 		});
@@ -91,15 +101,11 @@ public class MainActivity extends AppCompatActivity {
 	
 	public void _isLogVisible() {
 		if (binding.listlogs.getVisibility() == View.GONE) {
-			// If the log is gone, 
 			// the fab will change the icon to the chat icon
-			binding.listlogs.setVisibility(View.VISIBLE);
 			binding.Fab.setImageResource(R.drawable.icon_chatlog_round);
 		}
 		else if (binding.listlogs.getVisibility() == View.VISIBLE) {
-			// If the log is visible, 
 			// the fab will change the icon to the chat icon
-			binding.listlogs.setVisibility(View.GONE);
 			binding.Fab.setImageResource(R.drawable.icon_close_round);
 		}
 	}
