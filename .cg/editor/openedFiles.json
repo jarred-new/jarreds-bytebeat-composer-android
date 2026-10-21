@@ -1,0 +1,21 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/MainActivity.java",
+      "selection": {
+        "end": {
+          "column": 30,
+          "index": 1513,
+          "line": 46
+        },
+        "start": {
+          "column": 30,
+          "index": 1513,
+          "line": 46
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android",
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/MainActivity.java"
+}
