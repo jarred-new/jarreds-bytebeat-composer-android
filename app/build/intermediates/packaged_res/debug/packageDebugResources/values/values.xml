@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorAccent">#31B3D4</color>
+    <color name="colorControlHighlight">#FFC6B7</color>
+    <color name="colorControlNormal">#888888</color>
+    <color name="colorPrimary">#D05738</color>
+    <color name="colorPrimaryDark">#923D27</color>
+    <string name="app_name" translatable="false">Jarreds Bytebeat Composer</string>
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="android:statusBarColor">@android:color/transparent</item>
+		<item name="android:navigationBarColor">@android:color/transparent</item>
+		<item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+	</style>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3"/>
+    <style name="AppTheme.DebugActivity" parent="AppTheme">
+		<item name="windowActionBar">true</item>
+		<item name="windowNoTitle">false</item>
+	</style>
+    <style name="AppTheme.FullScreen" parent="AppTheme">
+		<item name="android:windowFullscreen">true</item>
+		<item name="android:windowContentOverlay">@null</item>
+	</style>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3"/>
+</resources>
