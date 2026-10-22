@@ -76,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
                 fabClicks++;
                 if (fabClicks == 1) {
                     binding.listlogs.setVisibility(View.VISIBLE);
+                    if (binding.listlogs.getVisibility() == View.VISIBLE) {
+                        binding.listlogs.setVisibility(View.GONE);
+                        fabClicks = 0;
+                    }
                 }
                 else if (fabClicks == 2) {
                     binding.listlogs.setVisibility(View.GONE);

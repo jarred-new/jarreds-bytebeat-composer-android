@@ -5,7 +5,7 @@
     <color name="colorControlNormal">#888888</color>
     <color name="colorPrimary">#D05738</color>
     <color name="colorPrimaryDark">#923D27</color>
-    <string name="app_name" translatable="false">Jarreds Bytebeat Composer</string>
+    <string name="app_name" translatable="false">Jarred's Bytebeat Composer</string>
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
 		<item name="android:statusBarColor">@android:color/transparent</item>
 		<item name="android:navigationBarColor">@android:color/transparent</item>
