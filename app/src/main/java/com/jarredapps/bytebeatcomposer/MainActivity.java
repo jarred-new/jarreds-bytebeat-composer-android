@@ -41,77 +41,114 @@ import java.util.regex.*;
 import org.json.*;
 
 public class MainActivity extends AppCompatActivity {
-	
-	private MainBinding binding;
-	
+
+    private MainBinding binding;
+
     private int fabClicks = 0;
-    
-	private ArrayList<String> bytebeatListStr = new ArrayList<>();
-	private ArrayList<String> logListStr = new ArrayList<>();
-	
-	@Override
-	protected void onCreate(Bundle _savedInstanceState) {
+    private BytebeatPlayer player = new BytebeatPlayer();
+
+    private ArrayList<String> bytebeatListStr = new ArrayList<>();
+    private ArrayList<String> logListStr = new ArrayList<>();
+
+    @Override
+    protected void onCreate(Bundle _savedInstanceState) {
         DynamicColors.applyIfAvailable(this);
-		super.onCreate(_savedInstanceState);
-		binding = MainBinding.inflate(getLayoutInflater());
-		setContentView(binding.getRoot());
-		initialize(_savedInstanceState);
-		initializeLogic();
-	}
-	
-	private void initialize(Bundle _savedInstanceState) {
-		setSupportActionBar(binding.Toolbar);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-		getSupportActionBar().setHomeButtonEnabled(false);
-//		binding.Toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View _v) {
-//				onBackPressed();
-//			}
-//		});
-		
-		binding.Fab.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View _view) {
-                fabClicks++;
-                if (fabClicks == 1) {
-                    binding.listlogs.setVisibility(View.VISIBLE);
-                    if (binding.listlogs.getVisibility() == View.VISIBLE) {
-                        binding.listlogs.setVisibility(View.GONE);
-                        fabClicks = 0;
+        super.onCreate(_savedInstanceState);
+        binding = MainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        initialize(_savedInstanceState);
+        initializeLogic();
+    }
+
+    private void initialize(Bundle _savedInstanceState) {
+        setSupportActionBar(binding.Toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
+        //		binding.Toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+        //			@Override
+        //			public void onClick(View _v) {
+        //				onBackPressed();
+        //			}
+        //		});
+
+        binding.Fab.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View _view) {
+                        fabClicks++;
+                        if (fabClicks == 1) {
+                            binding.listlogs.setVisibility(View.VISIBLE);
+                            if (binding.listlogs.getVisibility() == View.VISIBLE) {
+                                binding.listlogs.setVisibility(View.GONE);
+                                fabClicks = 0;
+                            }
+                        } else if (fabClicks == 2) {
+                            binding.listlogs.setVisibility(View.GONE);
+                            fabClicks = 0;
+                        }
+                        _isLogVisible();
                     }
-                }
-                else if (fabClicks == 2) {
-                    binding.listlogs.setVisibility(View.GONE);
-                    fabClicks = 0;
-                }
-				_isLogVisible();
-			}
-		});
-	}
-	
-	private void initializeLogic() {
-		// Bytebeat Spinner Lists
-		bytebeatListStr.add("Bytebeat");
-		bytebeatListStr.add("Signed Bytebeat");
-		binding.bytebeatTypeSpinner.setAdapter(new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, bytebeatListStr));
-		((ArrayAdapter)binding.bytebeatTypeSpinner.getAdapter()).notifyDataSetChanged();
-		// Welcome on logs
-		logListStr.add("Welcome to Jarred's Bytebeat Composer!");
-		binding.listlogs.setAdapter(new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_list_item_1, logListStr));
-		((BaseAdapter)binding.listlogs.getAdapter()).notifyDataSetChanged();
-		_isLogVisible();
-	}
-	
-	public void _isLogVisible() {
-		if (binding.listlogs.getVisibility() == View.GONE) {
-			// the fab will change the icon to the chat icon
-			binding.Fab.setImageResource(R.drawable.icon_chatlog_round);
-		}
-		else if (binding.listlogs.getVisibility() == View.VISIBLE) {
-			// the fab will change the icon to the chat icon
-			binding.Fab.setImageResource(R.drawable.icon_close_round);
-		}
-	}
-	
-}
+                });
+
+        binding.play.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View _view) {
+                        if (player.isRunning()) {
+                            player.stop();
+                        }
+                        
+                        String formula = binding.editor.getText().toString();
+                        String freqStr = binding.freqInput.getText().toString();
+
+                        int freqInt = 8000;
+                        try {
+                            freqInt = Integer.parseInt(freqStr, 8000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        
+                        player.start(formula, freqInt, BytebeatType.BYTEBEAT_UNSIGNED);
+                    }
+                });
+
+        binding.stop.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View _view) {
+                        if (player.isRunning()) {
+                            player.stop();
+                        }
+                    }
+                });
+    }
+
+    private void initializeLogic() {
+        // Bytebeat Spinner Lists
+        bytebeatListStr.add("Bytebeat");
+        bytebeatListStr.add("Signed Bytebeat");
+        binding.bytebeatTypeSpinner.setAdapter(
+                new ArrayAdapter<String>(
+                        getBaseContext(),
+                        android.R.layout.simple_spinner_dropdown_item,
+                        bytebeatListStr));
+        ((ArrayAdapter) binding.bytebeatTypeSpinner.getAdapter()).notifyDataSetChanged();
+        // Welcome on logs
+        logListStr.add("Welcome to Jarred's Bytebeat Composer!");
+        binding.listlogs.setAdapter(
+                new ArrayAdapter<String>(
+                        getBaseContext(), android.R.layout.simple_list_item_1, logListStr));
+        ((BaseAdapter) binding.listlogs.getAdapter()).notifyDataSetChanged();
+        _isLogVisible();
+    }
+
+    public void _isLogVisible() {
+        if (binding.listlogs.getVisibility() == View.GONE) {
+            // the fab will change the icon to the chat icon
+            binding.Fab.setImageResource(R.drawable.icon_chatlog_round);
+        } else if (binding.listlogs.getVisibility() == View.VISIBLE) {
+            // the fab will change the icon to the chat icon
+            binding.Fab.setImageResource(R.drawable.icon_close_round);
+        }
+    }
+}

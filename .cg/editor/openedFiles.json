@@ -4,29 +4,14 @@
       "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/MainActivity.java",
       "selection": {
         "end": {
-          "column": 24,
-          "index": 2761,
-          "line": 80
+          "column": 30,
+          "index": 4045,
+          "line": 106
         },
         "start": {
-          "column": 24,
-          "index": 2761,
-          "line": 80
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/res/values/strings.xml",
-      "selection": {
-        "end": {
-          "column": 60,
-          "index": 72,
-          "line": 1
-        },
-        "start": {
-          "column": 60,
-          "index": 72,
-          "line": 1
+          "column": 30,
+          "index": 4045,
+          "line": 106
         }
       }
     },
@@ -34,33 +19,18 @@
       "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/res/layout/main.xml",
       "selection": {
         "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
+          "column": 31,
+          "index": 2158,
+          "line": 55
         },
         "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/BytebeatPlayer.java",
-      "selection": {
-        "end": {
-          "column": 33,
-          "index": 1193,
-          "line": 43
-        },
-        "start": {
-          "column": 33,
-          "index": 1193,
-          "line": 43
+          "column": 22,
+          "index": 2149,
+          "line": 55
         }
       }
     }
   ],
   "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android",
-  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/BytebeatPlayer.java"
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/MainActivity.java"
 }

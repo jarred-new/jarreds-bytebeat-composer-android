@@ -9,7 +9,7 @@ import net.objecthunter.exp4j.*;
 public class BytebeatPlayer {
 
     private Thread thread;
-    private boolean running;
+    protected boolean running;
 
     public void start(final String formula, final int sampleRate, final BytebeatType type) {
 
@@ -79,6 +79,10 @@ public class BytebeatPlayer {
             });
 
         thread.start();
+    }
+
+    public boolean isRunning() {
+    	return this.running;
     }
 
     public void stop() {
