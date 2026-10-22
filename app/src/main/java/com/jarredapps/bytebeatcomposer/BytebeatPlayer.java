@@ -17,66 +17,106 @@ public class BytebeatPlayer {
 
         running = true;
 
-        thread = new Thread(new Runnable() {
+        thread =
+                new Thread(
+                        new Runnable() {
 
-                @Override
-                public void run() {
+                            @Override
+                            public void run() {
 
-                    //int sampleRate = 8000;
+                                // int sampleRate = 8000;
 
-                    AudioTrack track =
-                        new AudioTrack(
-                        AudioManager.STREAM_MUSIC,
-                        sampleRate,
-                        AudioFormat.CHANNEL_OUT_MONO,
-                        AudioFormat.ENCODING_PCM_16BIT,
-                        sampleRate,
-                        AudioTrack.MODE_STREAM);
+                                AudioTrack track =
+                                        new AudioTrack(
+                                                AudioManager.STREAM_MUSIC,
+                                                sampleRate,
+                                                AudioFormat.CHANNEL_OUT_MONO,
+                                                AudioFormat.ENCODING_PCM_16BIT,
+                                                sampleRate,
+                                                AudioTrack.MODE_STREAM);
 
-                    track.play();
+                                track.play();
 
-                    long t = 0;
+                                long t = 0;
 
-                    short[] buffer =
-                        new short[1024];
-                        
-                    Expression expr = new ExpressionBuilder(formula)
-                        .variable("t")
-                        .build()
-                        .setVariable("t", t);
+                                short[] buffer = new short[1024];
 
-                    while (running) {
+                                // --- Bitwise Shifts (Precedence slightly below Addition) ---
+                                int PRECEDENCE_SHIFT = Operator.PRECEDENCE_ADDITION - 10;
 
-                        for (int i=0;i < buffer.length;i++) {
+                                Operator leftShift =
+                                        new Operator("<<", 2, true, PRECEDENCE_SHIFT) {
+                                            @Override
+                                            public double apply(double... args) {
+                                                return (double) ((long) args[0] << (long) args[1]);
+                                            }
+                                        };
+                                Operator rightShift =
+                                        new Operator(">>", 2, true, PRECEDENCE_SHIFT) {
+                                            @Override
+                                            public double apply(double... args) {
+                                                return (double) ((long) args[0] >> (long) args[1]);
+                                            }
+                                        };
 
-                            double value =
-                                expr.evaluate();
+                                // --- Bitwise AND, XOR, OR (Precedence below Shifts) ---
+                                Operator bitwiseAnd =
+                                        new Operator("&", 2, true, PRECEDENCE_SHIFT - 10) {
+                                            @Override
+                                            public double apply(double... args) {
+                                                return (double) ((long) args[0] & (long) args[1]);
+                                            }
+                                        };
+                                        
+                                // NOTE: Standard exp4j already maps '^' to power.
+                                // We override or use an alternate symbol like 'XOR' to avoid conflicts.
+                                Operator bitwiseXor =
+                                        new Operator("XOR", 2, true, PRECEDENCE_SHIFT - 20) {
+                                            @Override
+                                            public double apply(double... args) {
+                                                return (double) ((long) args[0] ^ (long) args[1]);
+                                            }
+                                        };
+                                Operator bitwiseOr =
+                                        new Operator("|", 2, true, PRECEDENCE_SHIFT - 30) {
+                                            @Override
+                                            public double apply(double... args) {
+                                                return (double) ((long) args[0] | (long) args[1]);
+                                            }
+                                        };
 
-                            short sample = 0;
+                                while (running) {
 
-                            if (type == BytebeatType.BYTEBEAT_SIGNED) {
-                                sample =
-                                    (short)(((long)value & 255) * 256);
-                            } else if (type == BytebeatType.BYTEBEAT_UNSIGNED) {
-                                sample =
-                                    (short)((value - 128) * 256);
+                                    for (int i = 0; i < buffer.length; i++) {
+                                        Expression expr =
+                                                new ExpressionBuilder(formula)
+                                                        .variable("t")
+                                                        .operator(leftShift, rightShift, bitwiseAnd, bitwiseOr, bitwiseXor)
+                                                        .build()
+                                                        .setVariable("t", t);
+
+                                        double value = expr.evaluate();
+
+                                        short sample = 0;
+
+                                        if (type == BytebeatType.BYTEBEAT_SIGNED) {
+                                            sample = (short) (((long) value & 255) * 256);
+                                        } else if (type == BytebeatType.BYTEBEAT_UNSIGNED) {
+                                            sample = (short) ((value - 128) * 256);
+                                        }
+
+                                        buffer[i] = sample;
+
+                                        t++;
+                                    }
+
+                                    track.write(buffer, 0, buffer.length);
+                                }
+
+                                track.stop();
+                                track.release();
                             }
-
-							buffer[i] = sample;
-
-                            t++;
-                        }
-
-                        track.write(
-                            buffer,
-                            0,
-                            buffer.length);
-                    }
-
-                    track.stop();
-                    track.release();
-                }
-            });
+                        });
 
         thread.start();
     }

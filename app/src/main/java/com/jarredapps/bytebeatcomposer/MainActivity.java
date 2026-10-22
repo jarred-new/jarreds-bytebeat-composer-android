@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private MainBinding binding;
 
     private int fabClicks = 0;
+    private int typePos = 0;
     private BytebeatPlayer player = new BytebeatPlayer();
 
     private ArrayList<String> bytebeatListStr = new ArrayList<>();
@@ -97,18 +98,59 @@ public class MainActivity extends AppCompatActivity {
                         if (player.isRunning()) {
                             player.stop();
                         }
-                        
-                        String formula = binding.editor.getText().toString();
-                        String freqStr = binding.freqInput.getText().toString();
 
-                        int freqInt = 8000;
-                        try {
-                            freqInt = Integer.parseInt(freqStr, 8000);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        String formula = binding.editor.getText().toString().trim();
+
+                        String frequency = binding.freqInput.getText().toString().trim();
+
+                        if (formula.isEmpty()) {
+                            binding.editor.setError("Formula is Empty!");
+                            //                            logList.add("Formula is Empty!");
+                            //                            refreshLog(logList);
+                            return;
                         }
-                        
-                        player.start(formula, freqInt, BytebeatType.BYTEBEAT_UNSIGNED);
+
+                        if (frequency.isEmpty()) {
+                            binding.freqInput.setError("You must enter a frequency");
+                            //                            logList.add("You must enter a frequency");
+                            //                            refreshLog(logList);
+                            return;
+                        }
+
+                        try {
+                            int freqInt = Integer.parseInt(frequency);
+
+                            if (typePos == 0) {
+                                player.start(formula, freqInt, BytebeatType.BYTEBEAT_UNSIGNED);
+
+                                //                                logList.add("Playing: " +
+                                // formula);
+                                //                                refreshLog(logList);
+                            } else if (typePos == 1) {
+                                player.start(formula, freqInt, BytebeatType.BYTEBEAT_SIGNED);
+
+                                //                                logList.add("Playing: " +
+                                // formula);
+                                //                                refreshLog(logList);
+                            }
+                        } catch (NumberFormatException e) {
+                            binding.freqInput.setError("Frequency must be numeric");
+
+                            //                            logList.add("Frequency must be numeric");
+                            //                            refreshLog(logList);
+                            return;
+
+                        } catch (RuntimeException e) {
+                            e.printStackTrace();
+                            binding.editor.setError(
+                                    "java.lang.RuntimeException Error: " + e.toString());
+
+                            //                            logList.add("java.lang.RuntimeException
+                            // Error: "
+                            //                                        + e.toString());
+                            //                            refreshLog(logList);
+                            return;
+                        }
                     }
                 });
 
@@ -119,6 +161,20 @@ public class MainActivity extends AppCompatActivity {
                         if (player.isRunning()) {
                             player.stop();
                         }
+                                      }
+                });
+
+        binding.bytebeatTypeSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        typePos = position; 
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        // This is called when the selection disappears from the view,
+                        // which rarely happens but must be implemented.
                     }
                 });
     }
