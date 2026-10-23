@@ -20,18 +20,9 @@ import android.webkit.*;
 import android.widget.*;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.Spinner;
 import androidx.annotation.*;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import com.google.android.material.appbar.AppBarLayout;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jarredapps.bytebeatcomposer.databinding.*;
 import java.io.*;
 import java.text.*;
@@ -78,10 +69,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View _view) {
                         fabClicks++;
                         if (fabClicks == 1) {
-                            binding.listlogs.setVisibility(View.VISIBLE);
                             if (binding.listlogs.getVisibility() == View.VISIBLE) {
                                 binding.listlogs.setVisibility(View.GONE);
                                 fabClicks = 0;
+                            } else {
+                                binding.listlogs.setVisibility(View.VISIBLE);
                             }
                         } else if (fabClicks == 2) {
                             binding.listlogs.setVisibility(View.GONE);
@@ -144,6 +136,16 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                             binding.editor.setError(
                                     "java.lang.RuntimeException Error: " + e.toString());
+
+                            //                            logList.add("java.lang.RuntimeException
+                            // Error: "
+                            //                                        + e.toString());
+                            //                            refreshLog(logList);
+                            return;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            binding.editor.setError(
+                                    "java.lang.Exception Error: " + e.toString());
 
                             //                            logList.add("java.lang.RuntimeException
                             // Error: "

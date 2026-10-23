@@ -1,10 +1,9 @@
 package com.jarredapps.bytebeatcomposer;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
+import android.media.*;
 
 import net.objecthunter.exp4j.*;
+import net.objecthunter.exp4j.operator.*;
 
 public class BytebeatPlayer {
 
@@ -26,14 +25,37 @@ public class BytebeatPlayer {
 
                                 // int sampleRate = 8000;
 
-                                AudioTrack track =
-                                        new AudioTrack(
-                                                AudioManager.STREAM_MUSIC,
+                                int minBufferSize =
+                                        AudioTrack.getMinBufferSize(
                                                 sampleRate,
                                                 AudioFormat.CHANNEL_OUT_MONO,
-                                                AudioFormat.ENCODING_PCM_16BIT,
-                                                sampleRate,
-                                                AudioTrack.MODE_STREAM);
+                                                AudioFormat.ENCODING_PCM_16BIT);
+
+                                AudioTrack track =
+                                        new AudioTrack.Builder()
+                                                .setAudioAttributes(
+                                                        new AudioAttributes.Builder()
+                                                                .setUsage(
+                                                                        AudioAttributes.USAGE_MEDIA)
+                                                                .setContentType(
+                                                                        AudioAttributes
+                                                                                .CONTENT_TYPE_MUSIC)
+                                                                .build())
+                                                .setAudioFormat(
+                                                        new AudioFormat.Builder()
+                                                                .setEncoding(
+                                                                        AudioFormat
+                                                                                .ENCODING_PCM_16BIT)
+                                                                .setSampleRate(sampleRate)
+                                                                .setChannelMask(
+                                                                        AudioFormat
+                                                                                .CHANNEL_OUT_MONO)
+                                                                .build())
+                                                .setBufferSizeInBytes(
+                                                        minBufferSize) // Using sampleRate
+                                                // as the buffer size
+                                                .setTransferMode(AudioTrack.MODE_STREAM)
+                                                .build();
 
                                 track.play();
 
@@ -44,54 +66,94 @@ public class BytebeatPlayer {
                                 // --- Bitwise Shifts (Precedence slightly below Addition) ---
                                 int PRECEDENCE_SHIFT = Operator.PRECEDENCE_ADDITION - 10;
 
-                                Operator leftShift =
-                                        new Operator("<<", 2, true, PRECEDENCE_SHIFT) {
-                                            @Override
-                                            public double apply(double... args) {
-                                                return (double) ((long) args[0] << (long) args[1]);
-                                            }
-                                        };
-                                Operator rightShift =
-                                        new Operator(">>", 2, true, PRECEDENCE_SHIFT) {
-                                            @Override
-                                            public double apply(double... args) {
-                                                return (double) ((long) args[0] >> (long) args[1]);
-                                            }
-                                        };
-
-                                // --- Bitwise AND, XOR, OR (Precedence below Shifts) ---
-                                Operator bitwiseAnd =
-                                        new Operator("&", 2, true, PRECEDENCE_SHIFT - 10) {
-                                            @Override
-                                            public double apply(double... args) {
-                                                return (double) ((long) args[0] & (long) args[1]);
-                                            }
-                                        };
-                                        
-                                // NOTE: Standard exp4j already maps '^' to power.
-                                // We override or use an alternate symbol like 'XOR' to avoid conflicts.
-                                Operator bitwiseXor =
-                                        new Operator("XOR", 2, true, PRECEDENCE_SHIFT - 20) {
-                                            @Override
-                                            public double apply(double... args) {
-                                                return (double) ((long) args[0] ^ (long) args[1]);
-                                            }
-                                        };
-                                Operator bitwiseOr =
-                                        new Operator("|", 2, true, PRECEDENCE_SHIFT - 30) {
-                                            @Override
-                                            public double apply(double... args) {
-                                                return (double) ((long) args[0] | (long) args[1]);
-                                            }
-                                        };
+                                //                                Operator leftShift =
+                                //                                        new Operator("<<", 2,
+                                // true, PRECEDENCE_SHIFT) {
+                                //                                            @Override
+                                //                                            public double
+                                // apply(double... args) {
+                                //                                                return (double)
+                                // ((long) args[0] << (long) args[1]);
+                                //                                            }
+                                //                                        };
+                                //                                Operator rightShift =
+                                //                                        new Operator(">>", 2,
+                                // true, PRECEDENCE_SHIFT) {
+                                //                                            @Override
+                                //                                            public double
+                                // apply(double... args) {
+                                //                                                return (double)
+                                // ((long) args[0] >> (long) args[1]);
+                                //                                            }
+                                //                                        };
+                                //
+                                //                                // --- Bitwise AND, XOR, OR
+                                // (Precedence below Shifts) ---
+                                //                                Operator bitwiseAnd =
+                                //                                        new Operator("&", 2, true,
+                                // PRECEDENCE_SHIFT - 10) {
+                                //                                            @Override
+                                //                                            public double
+                                // apply(double... args) {
+                                //                                                return (double)
+                                // ((long) args[0] & (long) args[1]);
+                                //                                            }
+                                //                                        };
+                                //
+                                //                                // NOTE: Standard exp4j already
+                                // maps '^' to power.
+                                //                                // We override or use an alternate
+                                // symbol like 'XOR' to avoid
+                                //                                // conflicts.
+                                //                                Operator bitwiseXor =
+                                //                                        new Operator("XOR", 2,
+                                // true, PRECEDENCE_SHIFT - 20) {
+                                //                                            @Override
+                                //                                            public double
+                                // apply(double... args) {
+                                //                                                return (double)
+                                // ((long) args[0] ^ (long) args[1]);
+                                //                                            }
+                                //                                        };
+                                //                                Operator bitwiseOr =
+                                //                                        new Operator("|", 2, true,
+                                // PRECEDENCE_SHIFT - 30) {
+                                //                                            @Override
+                                //                                            public double
+                                // apply(double... args) {
+                                //                                                return (double)
+                                // ((long) args[0] | (long) args[1]);
+                                //                                            }
+                                //                                        };
 
                                 while (running) {
 
                                     for (int i = 0; i < buffer.length; i++) {
+                                        //                                        Expression expr =
+                                        //                                                new
+                                        // ExpressionBuilder(formula)
+                                        //
+                                        // .variable("t")
+                                        //
+                                        // .operator(
+                                        //
+                                        //      leftShift,
+                                        //
+                                        //      rightShift,
+                                        //
+                                        //      bitwiseAnd,
+                                        //
+                                        //      bitwiseOr,
+                                        //
+                                        //      bitwiseXor)
+                                        //
+                                        // .build()
+                                        //
+                                        // .setVariable("t", t);
+
                                         Expression expr =
                                                 new ExpressionBuilder(formula)
                                                         .variable("t")
-                                                        .operator(leftShift, rightShift, bitwiseAnd, bitwiseOr, bitwiseXor)
                                                         .build()
                                                         .setVariable("t", t);
 
