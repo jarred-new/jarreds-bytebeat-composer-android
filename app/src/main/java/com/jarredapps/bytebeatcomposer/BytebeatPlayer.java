@@ -1,201 +1,269 @@
+
 package com.jarredapps.bytebeatcomposer;
 
-import android.media.*;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 
-import net.objecthunter.exp4j.*;
-import net.objecthunter.exp4j.operator.*;
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
+import net.objecthunter.exp4j.operator.Operator;
 
 public class BytebeatPlayer {
 
-    private Thread thread;
-    protected boolean running;
+    private static final String TAG = "BytebeatPlayer";
 
-    public void start(final String formula, final int sampleRate, final BytebeatType type) {
+    private volatile boolean running = false;
+    private Thread thread;
+    private volatile AudioTrack audioTrack;
+
+    private static final int BUFFER_SAMPLES = 1024;
+
+    private static Operator makeOperator(
+            String symbol, int operands, int precedence) {
+
+        return new Operator(symbol, operands, true, precedence) {
+            @Override
+            public double apply(double... args) {
+                int a = (int) args[0];
+                int b = operands == 2 ? (int) args[1] : 0;
+
+                switch (symbol) {
+                    case "&":
+                        return a & b;
+                    case "|":
+                        return a | b;
+                    case "#":
+                        return a ^ b;
+                    case "<<":
+                        return a << (b & 31);
+                    case ">>":
+                        return a >> (b & 31);
+                    case ">>>":
+                        return a >>> (b & 31);
+                    case "~":
+                        return ~a;
+                    default:
+                        throw new IllegalArgumentException(
+                                "Unsupported operator: " + symbol);
+                }
+            }
+        };
+    }
+
+    private static Expression compileFormula(String formula) {
+
+        int shiftPrec = Operator.PRECEDENCE_ADDITION - 10;
+        int andPrec = Operator.PRECEDENCE_ADDITION - 20;
+        int xorPrec = Operator.PRECEDENCE_ADDITION - 30;
+        int orPrec = Operator.PRECEDENCE_ADDITION - 40;
+
+        Operator leftShift =
+                makeOperator("<<", 2, shiftPrec);
+        Operator rightShift =
+                makeOperator(">>", 2, shiftPrec);
+        Operator unsignedShift =
+                makeOperator(">>>", 2, shiftPrec);
+
+        Operator bitwiseAnd =
+                makeOperator("&", 2, andPrec);
+        Operator bitwiseXor =
+                makeOperator("#", 2, xorPrec);
+        Operator bitwiseOr =
+                makeOperator("|", 2, orPrec);
+
+        Operator bitwiseNot =
+                makeOperator("~", 1,
+                        Operator.PRECEDENCE_POWER + 10);
+
+        // In Bytebeat, ^ means bitwise XOR.
+        // exp4j uses ^ for exponentiation, so map it to #.
+        String parsedFormula = formula.replace("^", "#");
+
+        return new ExpressionBuilder(parsedFormula)
+                .variable("t")
+                .operator(
+                        leftShift,
+                        rightShift,
+                        unsignedShift,
+                        bitwiseAnd,
+                        bitwiseXor,
+                        bitwiseOr,
+                        bitwiseNot)
+                .build();
+    }
+
+    public synchronized void start(
+            final String formula,
+            final int sampleRate,
+            final BytebeatType type) {
 
         stop();
 
+        if (formula == null || formula.trim().isEmpty()) {
+            throw new IllegalStateException(
+                                "Formula is empty");
+        }
+
+        if (sampleRate <= 0) {
+            throw new IllegalStateException("Invalid sample rate: " + sampleRate);
+        }
+
         running = true;
 
-        thread =
-                new Thread(
-                        new Runnable() {
+        thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-                            @Override
-                            public void run() {
+                AudioTrack track = null;
 
-                                // int sampleRate = 8000;
+                try {
+                    // Compile once, not once per sample.
+                    final Expression expression =
+                            compileFormula(formula);
 
-                                int minBufferSize =
-                                        AudioTrack.getMinBufferSize(
-                                                sampleRate,
-                                                AudioFormat.CHANNEL_OUT_MONO,
-                                                AudioFormat.ENCODING_PCM_16BIT);
+                    int minBufferSize =
+                            AudioTrack.getMinBufferSize(
+                                    sampleRate,
+                                    AudioFormat.CHANNEL_OUT_MONO,
+                                    AudioFormat.ENCODING_PCM_16BIT);
 
-                                AudioTrack track =
-                                        new AudioTrack.Builder()
-                                                .setAudioAttributes(
-                                                        new AudioAttributes.Builder()
-                                                                .setUsage(
-                                                                        AudioAttributes.USAGE_MEDIA)
-                                                                .setContentType(
-                                                                        AudioAttributes
-                                                                                .CONTENT_TYPE_MUSIC)
-                                                                .build())
-                                                .setAudioFormat(
-                                                        new AudioFormat.Builder()
-                                                                .setEncoding(
-                                                                        AudioFormat
-                                                                                .ENCODING_PCM_16BIT)
-                                                                .setSampleRate(sampleRate)
-                                                                .setChannelMask(
-                                                                        AudioFormat
-                                                                                .CHANNEL_OUT_MONO)
-                                                                .build())
-                                                .setBufferSizeInBytes(
-                                                        minBufferSize) // Using sampleRate
-                                                // as the buffer size
-                                                .setTransferMode(AudioTrack.MODE_STREAM)
-                                                .build();
+                    if (minBufferSize <= 0) {
+                        throw new IllegalStateException(
+                                "Invalid AudioTrack buffer size: "
+                                        + minBufferSize);
+                    }
 
-                                track.play();
+                    int bufferBytes = Math.max(
+                            minBufferSize,
+                            BUFFER_SAMPLES * 2);
 
-                                long t = 0;
+                    // Legacy constructor supports Android API 21+.
+                    track = new AudioTrack(
+                            AudioManager.STREAM_MUSIC,
+                            sampleRate,
+                            AudioFormat.CHANNEL_OUT_MONO,
+                            AudioFormat.ENCODING_PCM_16BIT,
+                            bufferBytes,
+                            AudioTrack.MODE_STREAM);
 
-                                short[] buffer = new short[1024];
+                    if (track.getState()
+                            != AudioTrack.STATE_INITIALIZED) {
+                        throw new IllegalStateException(
+                                "AudioTrack initialization failed");
+                    }
 
-                                // --- Bitwise Shifts (Precedence slightly below Addition) ---
-                                int PRECEDENCE_SHIFT = Operator.PRECEDENCE_ADDITION - 10;
+                    audioTrack = track;
+                    track.play();
 
-                                //                                Operator leftShift =
-                                //                                        new Operator("<<", 2,
-                                // true, PRECEDENCE_SHIFT) {
-                                //                                            @Override
-                                //                                            public double
-                                // apply(double... args) {
-                                //                                                return (double)
-                                // ((long) args[0] << (long) args[1]);
-                                //                                            }
-                                //                                        };
-                                //                                Operator rightShift =
-                                //                                        new Operator(">>", 2,
-                                // true, PRECEDENCE_SHIFT) {
-                                //                                            @Override
-                                //                                            public double
-                                // apply(double... args) {
-                                //                                                return (double)
-                                // ((long) args[0] >> (long) args[1]);
-                                //                                            }
-                                //                                        };
-                                //
-                                //                                // --- Bitwise AND, XOR, OR
-                                // (Precedence below Shifts) ---
-                                //                                Operator bitwiseAnd =
-                                //                                        new Operator("&", 2, true,
-                                // PRECEDENCE_SHIFT - 10) {
-                                //                                            @Override
-                                //                                            public double
-                                // apply(double... args) {
-                                //                                                return (double)
-                                // ((long) args[0] & (long) args[1]);
-                                //                                            }
-                                //                                        };
-                                //
-                                //                                // NOTE: Standard exp4j already
-                                // maps '^' to power.
-                                //                                // We override or use an alternate
-                                // symbol like 'XOR' to avoid
-                                //                                // conflicts.
-                                //                                Operator bitwiseXor =
-                                //                                        new Operator("XOR", 2,
-                                // true, PRECEDENCE_SHIFT - 20) {
-                                //                                            @Override
-                                //                                            public double
-                                // apply(double... args) {
-                                //                                                return (double)
-                                // ((long) args[0] ^ (long) args[1]);
-                                //                                            }
-                                //                                        };
-                                //                                Operator bitwiseOr =
-                                //                                        new Operator("|", 2, true,
-                                // PRECEDENCE_SHIFT - 30) {
-                                //                                            @Override
-                                //                                            public double
-                                // apply(double... args) {
-                                //                                                return (double)
-                                // ((long) args[0] | (long) args[1]);
-                                //                                            }
-                                //                                        };
+                    short[] buffer =
+                            new short[BUFFER_SAMPLES];
 
-                                while (running) {
+                    long t = 0;
 
-                                    for (int i = 0; i < buffer.length; i++) {
-                                        //                                        Expression expr =
-                                        //                                                new
-                                        // ExpressionBuilder(formula)
-                                        //
-                                        // .variable("t")
-                                        //
-                                        // .operator(
-                                        //
-                                        //      leftShift,
-                                        //
-                                        //      rightShift,
-                                        //
-                                        //      bitwiseAnd,
-                                        //
-                                        //      bitwiseOr,
-                                        //
-                                        //      bitwiseXor)
-                                        //
-                                        // .build()
-                                        //
-                                        // .setVariable("t", t);
+                    while (running
+                            && !Thread.currentThread().isInterrupted()) {
 
-                                        Expression expr =
-                                                new ExpressionBuilder(formula)
-                                                        .variable("t")
-                                                        .build()
-                                                        .setVariable("t", t);
+                        for (int i = 0;
+                                i < buffer.length && running;
+                                i++, t++) {
 
-                                        double value = expr.evaluate();
+                            double value = expression
+                                    .setVariable("t", (double) t)
+                                    .evaluate();
 
-                                        short sample = 0;
-
-                                        if (type == BytebeatType.BYTEBEAT_SIGNED) {
-                                            sample = (short) (((long) value & 255) * 256);
-                                        } else if (type == BytebeatType.BYTEBEAT_UNSIGNED) {
-                                            sample = (short) ((value - 128) * 256);
-                                        }
-
-                                        buffer[i] = sample;
-
-                                        t++;
-                                    }
-
-                                    track.write(buffer, 0, buffer.length);
-                                }
-
-                                track.stop();
-                                track.release();
+                            if (Double.isNaN(value)
+                                    || Double.isInfinite(value)) {
+                                value = 0;
                             }
-                        });
+
+                            int byteValue = (int) value & 255;
+
+                            if (type == BytebeatType.BYTEBEAT_SIGNED) {
+                                buffer[i] =
+                                        (short) ((byteValue - 128) * 256);
+                            } else if (
+                                    type == BytebeatType.BYTEBEAT_UNSIGNED) {
+                                buffer[i] =
+                                        (short) (byteValue * 256);
+                            } else {
+                                buffer[i] = 0;
+                            }
+                        }
+
+                        if (!running) {
+                            break;
+                        }
+
+                        int written =
+                                track.write(buffer, 0, buffer.length);
+
+                        if (written < 0) {
+                            throw new IllegalStateException(
+                                    "AudioTrack write failed: " + written);
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                } finally {
+                    running = false;
+                    audioTrack = null;
+
+                    if (track != null) {
+                        try {
+                            if (track.getPlayState()
+                                    == AudioTrack.PLAYSTATE_PLAYING) {
+                                track.stop();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            track.release();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }, "BytebeatAudioThread");
 
         thread.start();
     }
 
     public boolean isRunning() {
-    	return this.running;
+        return running;
     }
 
-    public void stop() {
-
+    public synchronized void stop() {
         running = false;
 
-        if (thread != null) {
+        AudioTrack track = audioTrack;
+
+        if (track != null) {
             try {
-                thread.join();
+                track.pause();
+                track.flush();
             } catch (Exception e) {
+                e.printStackTrace();
             }
+        }
+
+        Thread oldThread = thread;
+
+        if (oldThread != null && oldThread != Thread.currentThread()) {
+            oldThread.interrupt();
+
+            try {
+                oldThread.join(1500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            thread = null;
         }
     }
 }
