@@ -42,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> bytebeatListStr = new ArrayList<>();
     private ArrayList<String> logListStr = new ArrayList<>();
 
+    private ArrayAdapter<String> listAdapter;
+    private ArrayAdapter<String> spinnerAdapter;
+
     @Override
     protected void onCreate(Bundle _savedInstanceState) {
         DynamicColors.applyIfAvailable(this);
@@ -163,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                         if (player.isRunning()) {
                             player.stop();
                         }
-                                      }
+                    }
                 });
 
         binding.bytebeatTypeSpinner.setOnItemSelectedListener(
@@ -182,20 +185,63 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeLogic() {
+        // ArrayAdapter and Layout from Material 3
+        /* For ListView */
+        int listML =
+                getResources()
+                        .getIdentifier(
+                                "material_list_item_single_line",
+                                "layout",
+                                "com.google.android.material");
+        if (listML == 0) {
+            // Graceful fallback to default Android layout if something goes wrong
+            listML = android.R.layout.simple_list_item_1;
+        }
+        listAdapter = new ArrayAdapter<>(this, listML, logListStr);
+
+        /* For Spinner */ 
+        int spinnerML = getResources().getIdentifier(
+                "material_spinner_item", "layout", "com.google.android.material"
+        );
+        int dropdownML = // dropdown
+                getResources()
+                        .getIdentifier(
+                                "material_spinner_dropdown_item",
+                                "layout",
+                                "com.google.android.material");
+        if (spinnerML == 0) {
+            // Graceful fallback to default Android layout if something goes wrong
+            spinnerML = android.R.layout.simple_spinner_item;
+        }     
+        if (dropdownML == 0) {
+            // Graceful fallback to default Android layout if something goes wrong
+            dropdownML = android.R.layout.simple_spinner_dropdown_item;
+        }                   
+        spinnerAdapter = new ArrayAdapter<>(this, spinnerML, bytebeatListStr);
+        spinnerAdapter.setDropDownViewResource(dropdownML);
+
         // Bytebeat Spinner Lists
         bytebeatListStr.add("Bytebeat");
         bytebeatListStr.add("Signed Bytebeat");
-        binding.bytebeatTypeSpinner.setAdapter(
+        if (spinnerAdapter != null) {
+            binding.bytebeatTypeSpinner.setAdapter(spinnerAdapter);
+        } else {
+            binding.bytebeatTypeSpinner.setAdapter(
                 new ArrayAdapter<String>(
                         getBaseContext(),
-                        android.R.layout.simple_spinner_dropdown_item,
+                        android.R.layout.simple_spinner_item,
                         bytebeatListStr));
+        }
         ((ArrayAdapter) binding.bytebeatTypeSpinner.getAdapter()).notifyDataSetChanged();
+        
         // Welcome on logs
         logListStr.add("Welcome to Jarred's Bytebeat Composer!");
-        binding.listlogs.setAdapter(
-                new ArrayAdapter<String>(
-                        getBaseContext(), android.R.layout.simple_list_item_1, logListStr));
+        if (listAdapter != null) {
+            binding.listlogs.setAdapter(listAdapter);
+        } else {
+            binding.listlogs.setAdapter(
+                    new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_list_item_1, logListStr));
+        }
         ((BaseAdapter) binding.listlogs.getAdapter()).notifyDataSetChanged();
         _isLogVisible();
     }
