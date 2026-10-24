@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:title="File">
+        <menu>
+            <item
+                android:id="@+id/newMenu"
+                android:title="New"/>
+
+            <item android:title="Open">
+                <menu>
+                    <item 
+                        android:id="@+id/openBB"
+                        android:title="*.bb"/>
+                        
+                    <item
+                        android:id="@+id/openTxt"
+                        android:title="*.txt"/>
+                </menu>
+            </item>
+
+            <item android:title="Save">
+                <menu>
+                    <item 
+                        android:id="@+id/saveBB"
+                        android:title="*.bb"/>
+                        
+                    <item
+                        android:id="@+id/saveTxt"
+                        android:title="*.txt"/>
+                </menu>
+            </item>
+
+            <item
+                android:id="@+id/exportMenu"
+                android:title="Export to WAV"/>
+        </menu>
+    </item>
+    
+    <item android:title="Log">
+        <menu>
+            <item
+                android:id="@+id/clearLog"
+                android:title="Clear Log"/>
+        </menu>
+    </item>
+    
+    <item android:title="Application">
+        <menu>
+            <item
+                android:id="@+id/aboutApp"
+                android:title="About App..."/>
+
+            <item
+                android:id="@+id/exitApp"
+                android:title="Exit App..."/>
+        </menu>
+    </item>
+
+</menu>

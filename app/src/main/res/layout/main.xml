@@ -17,6 +17,7 @@
 			android:background="?attr/colorPrimary"
             app:titleTextColor="?attr/colorOnPrimary"
             app:subtitleTextColor="?attr/colorOnSurfaceVariant"
+            app:navigationIconTint="?attr/colorOnPrimary"
 			app:popupTheme="@style/AppTheme.PopupOverlay" />
 	</com.google.android.material.appbar.AppBarLayout>
 	<LinearLayout

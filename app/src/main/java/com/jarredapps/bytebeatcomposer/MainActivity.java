@@ -245,6 +245,39 @@ public class MainActivity extends AppCompatActivity {
         ((BaseAdapter) binding.listlogs.getAdapter()).notifyDataSetChanged();
         _isLogVisible();
     }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        
+        /*
+        if (id == R.id.newMenu) {
+            
+        } else if (id == R.id.openBB) {
+            
+        } else if (id == R.id.openTxt) {
+            
+        } else if (id == R.id.saveBB) {
+            
+        } else if (id == R.id.saveTxt) {
+            
+        } else if (id == R.id.exportMenu) {
+            
+        } else if (id == R.id.clearLog) {
+            
+        } else if (id == R.id.aboutApp) {
+            
+        } else if (id == R.id.exitApp) {
+            
+        } */
+        return super.onOptionsItemSelected(item);
+    }
 
     public void _isLogVisible() {
         if (binding.listlogs.getVisibility() == View.GONE) {

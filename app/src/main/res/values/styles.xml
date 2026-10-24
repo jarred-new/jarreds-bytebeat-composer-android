@@ -9,7 +9,30 @@
 		<item name="android:windowContentOverlay">@null</item>
 	</style>
 	<style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3" />
-	<style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3" />
+    
+    <!-- Style for the Main Title -->
+    <style name="ToolbarTitleAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    
+    <!-- Style for the Subtitle -->
+    <style name="ToolbarSubtitleAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Subtitle">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:alpha">0.7</item> <!-- Makes subtitle slightly translucent -->
+    </style>
+    
+	<style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3">
+        <!-- Tints the actions / options menu / three-dot icon -->
+        <item name="colorControlNormal">?attr/colorOnPrimary</item>
+        
+        <!-- References the title and subtitle text styles below -->
+        <item name="titleTextAppearance">@style/ToolbarTitleAppearance</item>
+        <item name="subtitleTextAppearance">@style/ToolbarSubtitleAppearance</item>
+    </style>
+    
 	<style name="AppTheme.DebugActivity" parent="AppTheme">
 		<item name="windowActionBar">true</item>
 		<item name="windowNoTitle">false</item>
