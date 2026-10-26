@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> spinnerAdapter;
 
     // for file
-    private boolean isChanged;
+    private boolean isChanged = false;
     private String currentFile = "Untitled";
 
     @Override
@@ -70,6 +70,19 @@ public class MainActivity extends AppCompatActivity {
         //				onBackPressed();
         //			}
         //		});
+        
+        binding.editor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                isChanged = true;
+            }
+        
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         binding.Fab.setOnClickListener(
                 new View.OnClickListener() {
