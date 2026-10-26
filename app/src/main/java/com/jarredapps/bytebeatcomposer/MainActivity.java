@@ -23,6 +23,7 @@ import android.widget.BaseAdapter;
 import androidx.annotation.*;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.color.DynamicColors;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jarredapps.bytebeatcomposer.databinding.*;
 import java.io.*;
 import java.text.*;
@@ -44,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayAdapter<String> listAdapter;
     private ArrayAdapter<String> spinnerAdapter;
+
+    // for file
+    private boolean isChanged;
+    private String currentFile = "Untitled";
 
     @Override
     protected void onCreate(Bundle _savedInstanceState) {
@@ -147,8 +152,7 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         } catch (Exception e) {
                             e.printStackTrace();
-                            binding.editor.setError(
-                                    "java.lang.Exception Error: " + e.toString());
+                            binding.editor.setError("java.lang.Exception Error: " + e.toString());
 
                             //                            logList.add("java.lang.RuntimeException
                             // Error: "
@@ -172,8 +176,9 @@ public class MainActivity extends AppCompatActivity {
         binding.bytebeatTypeSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
                     @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        typePos = position; 
+                    public void onItemSelected(
+                            AdapterView<?> parent, View view, int position, long id) {
+                        typePos = position;
                     }
 
                     @Override
@@ -199,10 +204,11 @@ public class MainActivity extends AppCompatActivity {
         }
         listAdapter = new ArrayAdapter<>(this, listML, logListStr);
 
-        /* For Spinner */ 
-        int spinnerML = getResources().getIdentifier(
-                "material_spinner_item", "layout", "com.google.android.material"
-        );
+        /* For Spinner */
+        int spinnerML =
+                getResources()
+                        .getIdentifier(
+                                "material_spinner_item", "layout", "com.google.android.material");
         int dropdownML = // dropdown
                 getResources()
                         .getIdentifier(
@@ -212,11 +218,11 @@ public class MainActivity extends AppCompatActivity {
         if (spinnerML == 0) {
             // Graceful fallback to default Android layout if something goes wrong
             spinnerML = android.R.layout.simple_spinner_item;
-        }     
+        }
         if (dropdownML == 0) {
             // Graceful fallback to default Android layout if something goes wrong
             dropdownML = android.R.layout.simple_spinner_dropdown_item;
-        }                   
+        }
         spinnerAdapter = new ArrayAdapter<>(this, spinnerML, bytebeatListStr);
         spinnerAdapter.setDropDownViewResource(dropdownML);
 
@@ -227,54 +233,55 @@ public class MainActivity extends AppCompatActivity {
             binding.bytebeatTypeSpinner.setAdapter(spinnerAdapter);
         } else {
             binding.bytebeatTypeSpinner.setAdapter(
-                new ArrayAdapter<String>(
-                        getBaseContext(),
-                        android.R.layout.simple_spinner_item,
-                        bytebeatListStr));
+                    new ArrayAdapter<String>(
+                            getBaseContext(),
+                            android.R.layout.simple_spinner_item,
+                            bytebeatListStr));
         }
         ((ArrayAdapter) binding.bytebeatTypeSpinner.getAdapter()).notifyDataSetChanged();
-        
+
         // Welcome on logs
         logListStr.add("Welcome to Jarred's Bytebeat Composer!");
         if (listAdapter != null) {
             binding.listlogs.setAdapter(listAdapter);
         } else {
             binding.listlogs.setAdapter(
-                    new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_list_item_1, logListStr));
+                    new ArrayAdapter<String>(
+                            getBaseContext(), android.R.layout.simple_list_item_1, logListStr));
         }
         ((BaseAdapter) binding.listlogs.getAdapter()).notifyDataSetChanged();
         _isLogVisible();
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+
         
-        /*
         if (id == R.id.newMenu) {
-            
+            _newFile();
         } else if (id == R.id.openBB) {
-            
+            _openBBFile();
         } else if (id == R.id.openTxt) {
-            
+            _openTxtFile();
         } else if (id == R.id.saveBB) {
-            
+            _saveBBFile();
         } else if (id == R.id.saveTxt) {
-            
-        } else if (id == R.id.exportMenu) {
-            
+            _saveTxtFile();
+        } /* else if (id == R.id.exportMenu) {
+
         } else if (id == R.id.clearLog) {
-            
+
         } else if (id == R.id.aboutApp) {
-            
+
         } else if (id == R.id.exitApp) {
-            
+
         } */
         return super.onOptionsItemSelected(item);
     }
@@ -287,5 +294,75 @@ public class MainActivity extends AppCompatActivity {
             // the fab will change the icon to the chat icon
             binding.Fab.setImageResource(R.drawable.icon_close_round);
         }
+    }
+
+    public void _newFile() {
+        if (isChanged) {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Do you want to save?")
+                    .setPositiveButton(
+                            android.R.string.yes,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dia, int which) {
+                                    _saveFileDlg();
+                                }
+                            })
+                    .setNegativeButton(
+                            android.R.string.no,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dia, int which) {
+                                    isChanged = false;
+                                    _newFile();
+                                }
+                            }).show();
+        } else {
+            currentFile = "Untitled";
+            binding.editor.setText("");
+        }
+    }
+
+    public void _saveFileDlg() {
+        new MaterialAlertDialogBuilder(this)
+                    .setTitle("What kind of file type to save?")
+                    .setPositiveButton(
+                            "Save as .bb",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dia, int which) {
+                                    _saveBBFile();
+                                }
+                            })
+                    .setNegativeButton(
+                            "Save as .txt",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dia, int which) {
+                                    _saveTxtFile();
+                                }
+                            }).show();
+    }
+
+    // Open bb and txt
+    public void _openBBFile() {
+        // TODO: Implement this method
+
+    }
+    
+    public void _openTxtFile() {
+        // TODO: Implement this method
+
+    }
+
+    // Save bb and txt
+    public void _saveBBFile() {
+        // TODO: Implement this method
+
+    }
+    
+    public void _saveTxtFile() {
+        // TODO: Implement this method
+
     }
 }

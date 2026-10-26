@@ -26,9 +26,14 @@
     
 	<style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3">
         <!-- Tints the actions / options menu / three-dot icon -->
+        <item name="colorControlNormal">?attr/colorPrimary</item>
+    </style>
+    
+    <style name="AppTheme.App.Toolbar" parent="ThemeOverlay.MaterialComponents.Toolbar.Primary">
+        <!-- Tints the action items / options menu / three-dot icon -->
         <item name="colorControlNormal">?attr/colorOnPrimary</item>
         
-        <!-- References the title and subtitle text styles below -->
+        <!-- References the corrected text styles below -->
         <item name="titleTextAppearance">@style/ToolbarTitleAppearance</item>
         <item name="subtitleTextAppearance">@style/ToolbarSubtitleAppearance</item>
     </style>
