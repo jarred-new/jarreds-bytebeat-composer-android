@@ -91,8 +91,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        int nightMode = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        int nightMode =
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                        .getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         AppCompatDelegate.setDefaultNightMode(nightMode);
         DynamicColors.applyIfAvailable(this);
         super.onCreate(savedInstanceState);
@@ -107,6 +108,32 @@ public class MainActivity extends AppCompatActivity {
         initializeLogic(savedInstanceState == null);
         updateTitle();
         applyEditorFontSize();
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_VIEW.equals(action) && type != null) {
+            if (type.equals("application/vnd.jarredapps.bb")) {
+                final Uri fileUri = intent.getData();
+                final int flags =
+                        intent.getFlags()
+                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                withUnsavedChanges(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    openBytebeatDocument(fileUri, flags);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+            }
+        }
     }
 
     private void initialize() {
@@ -117,55 +144,67 @@ public class MainActivity extends AppCompatActivity {
         }
 
         lastEditorText = binding.editor.getText().toString();
-        binding.editor.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        binding.editor.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s, int start, int count, int after) {}
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String current = s.toString();
-                if (!suppressHistory && !current.equals(lastEditorText)) {
-                    undoHistory.add(lastEditorText);
-                    if (undoHistory.size() > MAX_UNDO_STEPS) {
-                        undoHistory.remove(0);
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        String current = s.toString();
+                        if (!suppressHistory && !current.equals(lastEditorText)) {
+                            undoHistory.add(lastEditorText);
+                            if (undoHistory.size() > MAX_UNDO_STEPS) {
+                                undoHistory.remove(0);
+                            }
+                            redoHistory.clear();
+                            lastEditorText = current;
+                            updateDirtyState();
+                            invalidateOptionsMenu();
+                        }
                     }
-                    redoHistory.clear();
-                    lastEditorText = current;
-                    updateDirtyState();
-                    invalidateOptionsMenu();
-                }
-            }
 
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
+                    @Override
+                    public void afterTextChanged(Editable s) {}
+                });
 
-        binding.freqInput.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                updateDirtyState();
-            }
-            @Override public void afterTextChanged(Editable s) {}
-        });
+        binding.freqInput.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s, int start, int count, int after) {}
 
-        binding.Fab.setOnClickListener(v -> {
-            boolean showLogs = binding.listlogs.getVisibility() != View.VISIBLE;
-            binding.listlogs.setVisibility(showLogs ? View.VISIBLE : View.GONE);
-            updateLogButton(showLogs);
-        });
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        updateDirtyState();
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {}
+                });
+
+        binding.Fab.setOnClickListener(
+                v -> {
+                    boolean showLogs = binding.listlogs.getVisibility() != View.VISIBLE;
+                    binding.listlogs.setVisibility(showLogs ? View.VISIBLE : View.GONE);
+                    updateLogButton(showLogs);
+                });
 
         binding.play.setOnClickListener(v -> playFormula());
         binding.stop.setOnClickListener(v -> stopPlayback());
         binding.bytebeatTypeSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
                     @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    public void onItemSelected(
+                            AdapterView<?> parent, View view, int position, long id) {
                         selectedType = position;
                         updateDirtyState();
                         invalidateOptionsMenu();
                     }
 
-                    @Override public void onNothingSelected(AdapterView<?> parent) {}
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {}
                 });
     }
 
@@ -177,13 +216,18 @@ public class MainActivity extends AppCompatActivity {
         typeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, bytebeatTypes);
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.bytebeatTypeSpinner.setAdapter(typeAdapter);
-        binding.bytebeatTypeSpinner.setSelection(Math.max(0, Math.min(selectedType, bytebeatTypes.size() - 1)));
+        binding.bytebeatTypeSpinner.setSelection(
+                Math.max(0, Math.min(selectedType, bytebeatTypes.size() - 1)));
 
         if (showWelcome || logEntries.isEmpty()) {
             addLog("Welcome to Jarred's Bytebeat Composer");
         }
-        int materialListItem = getResources().getIdentifier(
-                "material_list_item_single_line", "layout", "com.google.android.material");
+        int materialListItem =
+                getResources()
+                        .getIdentifier(
+                                "material_list_item_single_line",
+                                "layout",
+                                "com.google.android.material");
         if (materialListItem == 0) materialListItem = android.R.layout.simple_list_item_1;
         logAdapter = new ArrayAdapter<>(this, materialListItem, logEntries);
         binding.listlogs.setAdapter(logAdapter);
@@ -204,9 +248,11 @@ public class MainActivity extends AppCompatActivity {
         if (undo != null) undo.setEnabled(!undoHistory.isEmpty());
         if (redo != null) redo.setEnabled(!redoHistory.isEmpty());
 
-        int themeMode = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-        checkMenuItem(menu, R.id.themeSystem, themeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        int themeMode =
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                        .getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        checkMenuItem(
+                menu, R.id.themeSystem, themeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         checkMenuItem(menu, R.id.themeLight, themeMode == AppCompatDelegate.MODE_NIGHT_NO);
         checkMenuItem(menu, R.id.themeDark, themeMode == AppCompatDelegate.MODE_NIGHT_YES);
         return super.onPrepareOptionsMenu(menu);
@@ -277,9 +323,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            BytebeatType type = selectedType == 1
-                    ? BytebeatType.BYTEBEAT_SIGNED
-                    : BytebeatType.BYTEBEAT_UNSIGNED;
+            BytebeatType type =
+                    selectedType == 1
+                            ? BytebeatType.BYTEBEAT_SIGNED
+                            : BytebeatType.BYTEBEAT_UNSIGNED;
             player.start(formula, sampleRate, type);
             addLog("Playing at " + sampleRate + " Hz · " + bytebeatTypes.get(selectedType));
             Snackbar.make(binding.getRoot(), "Playback started", Snackbar.LENGTH_SHORT).show();
@@ -337,21 +384,25 @@ public class MainActivity extends AppCompatActivity {
         int next = Math.max(12, Math.min(36, editorFontSize + delta));
         if (next == editorFontSize) return;
         editorFontSize = next;
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
-                .putInt("editor_font_size", editorFontSize).apply();
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putInt("editor_font_size", editorFontSize)
+                .apply();
         applyEditorFontSize();
         addLog("Editor text size: " + editorFontSize + " sp");
     }
 
     private void applyEditorFontSize() {
-        editorFontSize = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getInt("editor_font_size", editorFontSize);
+        editorFontSize =
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                        .getInt("editor_font_size", editorFontSize);
         binding.editor.setTextSize(TypedValue.COMPLEX_UNIT_SP, editorFontSize);
     }
 
     private void setThemeMode(int mode, String label) {
-        int current = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        int current =
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                        .getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         if (current == mode) return;
         addLog("Theme changed to " + label);
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putInt(THEME_KEY, mode).apply();
@@ -361,7 +412,8 @@ public class MainActivity extends AppCompatActivity {
     private void showAboutDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("About Jarred's Bytebeat Composer")
-                .setMessage("Compose and play bytebeat formulas on Android.\n\nSample rates: 8000–192000 Hz.")
+                .setMessage(
+                        "Compose and play bytebeat formulas on Android.\n\nSample rates: 8000–192000 Hz.")
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
@@ -371,9 +423,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateLogButton(boolean logsVisible) {
-        binding.Fab.setImageResource(logsVisible
-                ? R.drawable.icon_close_round
-                : R.drawable.icon_chatlog_round);
+        binding.Fab.setImageResource(
+                logsVisible ? R.drawable.icon_close_round : R.drawable.icon_chatlog_round);
         binding.Fab.setContentDescription(logsVisible ? "Hide log" : "Show log");
     }
 
@@ -406,10 +457,12 @@ public class MainActivity extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Save changes?")
                 .setMessage("Your formula has unsaved changes.")
-                .setPositiveButton("Save", (dialog, which) -> {
-                    actionAfterSave = action;
-                    _saveFileDlg();
-                })
+                .setPositiveButton(
+                        "Save",
+                        (dialog, which) -> {
+                            actionAfterSave = action;
+                            _saveFileDlg();
+                        })
                 .setNegativeButton("Discard", (dialog, which) -> action.run())
                 .setNeutralButton("Cancel", null)
                 .show();
@@ -418,7 +471,8 @@ public class MainActivity extends AppCompatActivity {
     public void _saveFileDlg() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Save formula as")
-                .setItems(new String[]{"Bytebeat file (.bb)", "Text file (.txt)"},
+                .setItems(
+                        new String[] {"Bytebeat file (.bb)", "Text file (.txt)"},
                         (dialog, which) -> {
                             if (which == 0) _saveBBFile();
                             else _saveTxtFile();
@@ -447,7 +501,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         try {
             startActivityForResult(intent, requestCode);
         } catch (ActivityNotFoundException e) {
@@ -458,10 +514,12 @@ public class MainActivity extends AppCompatActivity {
     private void launchCreateDocument(int requestCode, int format, String suggestedName) {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType(format == FORMAT_BB ? "application/json" : "text/plain");
+        intent.setType(format == FORMAT_BB ? "application/vnd.jarredapps.bb" : "text/plain");
         intent.putExtra(Intent.EXTRA_TITLE, withExtension(suggestedName, format));
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         try {
             startActivityForResult(intent, requestCode);
         } catch (ActivityNotFoundException e) {
@@ -479,7 +537,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Uri uri = data.getData();
-        int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        int flags =
+                data.getFlags()
+                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try {
             getContentResolver().takePersistableUriPermission(uri, flags);
         } catch (Exception ignored) {
@@ -547,8 +608,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveInFormat(int format) {
         pendingSaveFormat = format;
-        if (format == FORMAT_BB && (getSampleRateFromInput() < MIN_SAMPLE_RATE
-                || getSampleRateFromInput() > MAX_SAMPLE_RATE)) {
+        if (format == FORMAT_BB
+                && (getSampleRateFromInput() < MIN_SAMPLE_RATE
+                        || getSampleRateFromInput() > MAX_SAMPLE_RATE)) {
             binding.freqInput.setError("Use a sample rate from 8000 to 192000 Hz");
             showMessage("Set a valid sample rate before saving a .bb file");
             actionAfterSave = null;
@@ -606,7 +668,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String suggestedFileName(int format) {
-        String base = currentFile == null || currentFile.trim().isEmpty() ? "Untitled" : currentFile;
+        String base =
+                currentFile == null || currentFile.trim().isEmpty() ? "Untitled" : currentFile;
         return withExtension(base, format);
     }
 
@@ -627,8 +690,14 @@ public class MainActivity extends AppCompatActivity {
     private String displayName(Uri uri) {
         if (uri == null) return "";
         String name = "";
-        try (Cursor cursor = getContentResolver().query(uri,
-                new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+        try (Cursor cursor =
+                getContentResolver()
+                        .query(
+                                uri,
+                                new String[] {OpenableColumns.DISPLAY_NAME},
+                                null,
+                                null,
+                                null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 int nameColumn = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 if (nameColumn >= 0) name = cursor.getString(nameColumn);
@@ -645,7 +714,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String readDocument(Uri uri) throws IOException {
         try (InputStream input = getContentResolver().openInputStream(uri);
-             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             if (input == null) throw new IOException("The file could not be opened");
             byte[] buffer = new byte[8192];
             int count;
@@ -656,7 +725,9 @@ public class MainActivity extends AppCompatActivity {
             if (bytes.length >= 2 && (bytes[0] & 0xff) == 0xff && (bytes[1] & 0xff) == 0xfe) {
                 charset = StandardCharsets.UTF_16LE;
                 offset = 2;
-            } else if (bytes.length >= 2 && (bytes[0] & 0xff) == 0xfe && (bytes[1] & 0xff) == 0xff) {
+            } else if (bytes.length >= 2
+                    && (bytes[0] & 0xff) == 0xfe
+                    && (bytes[1] & 0xff) == 0xff) {
                 charset = StandardCharsets.UTF_16BE;
                 offset = 2;
             } else if (looksLikeUtf16Le(bytes)) {
@@ -711,8 +782,12 @@ public class MainActivity extends AppCompatActivity {
     private void showConversionOptions(String formula) {
         LinearLayout fields = new LinearLayout(this);
         fields.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
+        int padding =
+                (int)
+                        TypedValue.applyDimension(
+                                TypedValue.COMPLEX_UNIT_DIP,
+                                20,
+                                getResources().getDisplayMetrics());
         fields.setPadding(padding, padding / 2, padding, 0);
 
         TextView typeLabel = new TextView(this);
@@ -720,16 +795,18 @@ public class MainActivity extends AppCompatActivity {
         fields.addView(typeLabel);
 
         Spinner typeSpinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, bytebeatTypes);
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, bytebeatTypes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         typeSpinner.setAdapter(adapter);
         fields.addView(typeSpinner);
 
         TextView sampleRateLabel = new TextView(this);
         sampleRateLabel.setText("Sample rate (8000–192000 Hz)");
-        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams labelParams =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
         labelParams.topMargin = padding / 2;
         fields.addView(sampleRateLabel, labelParams);
 
@@ -740,39 +817,53 @@ public class MainActivity extends AppCompatActivity {
         sampleRateInput.setHint("8000");
         fields.addView(sampleRateInput);
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Convert TXT to .bb")
-                .setView(fields)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Choose output", null)
-                .create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String value = sampleRateInput.getText().toString().trim();
-            int sampleRate;
-            try {
-                sampleRate = Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                sampleRateInput.setError("Enter a sample rate");
-                return;
-            }
-            if (sampleRate < MIN_SAMPLE_RATE || sampleRate > MAX_SAMPLE_RATE) {
-                sampleRateInput.setError("Use 8000–192000 Hz");
-                return;
-            }
+        AlertDialog dialog =
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Convert TXT to .bb")
+                        .setView(fields)
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Choose output", null)
+                        .create();
+        dialog.setOnShowListener(
+                ignored ->
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                                .setOnClickListener(
+                                        v -> {
+                                            String value =
+                                                    sampleRateInput.getText().toString().trim();
+                                            int sampleRate;
+                                            try {
+                                                sampleRate = Integer.parseInt(value);
+                                            } catch (NumberFormatException e) {
+                                                sampleRateInput.setError("Enter a sample rate");
+                                                return;
+                                            }
+                                            if (sampleRate < MIN_SAMPLE_RATE
+                                                    || sampleRate > MAX_SAMPLE_RATE) {
+                                                sampleRateInput.setError("Use 8000–192000 Hz");
+                                                return;
+                                            }
 
-            try {
-                JSONObject json = new JSONObject();
-                json.put("formula", formula);
-                json.put("sampleRate", sampleRate);
-                json.put("bytebeatType", typeSpinner.getSelectedItemPosition());
-                pendingConvertedJson = json.toString(2);
-                dialog.dismiss();
-                launchCreateDocument(REQUEST_SAVE_CONVERTED, FORMAT_BB,
-                        (pendingConversionName == null ? "Converted" : pendingConversionName) + ".bb");
-            } catch (JSONException e) {
-                showMessage("Could not prepare the converted file");
-            }
-        }));
+                                            try {
+                                                JSONObject json = new JSONObject();
+                                                json.put("formula", formula);
+                                                json.put("sampleRate", sampleRate);
+                                                json.put(
+                                                        "bytebeatType",
+                                                        typeSpinner.getSelectedItemPosition());
+                                                pendingConvertedJson = json.toString(2);
+                                                dialog.dismiss();
+                                                launchCreateDocument(
+                                                        REQUEST_SAVE_CONVERTED,
+                                                        FORMAT_BB,
+                                                        (pendingConversionName == null
+                                                                        ? "Converted"
+                                                                        : pendingConversionName)
+                                                                + ".bb");
+                                            } catch (JSONException e) {
+                                                showMessage("Could not prepare the converted file");
+                                            }
+                                        }));
         dialog.show();
     }
 
@@ -787,8 +878,10 @@ public class MainActivity extends AppCompatActivity {
     private void updateDirtyState() {
         if (binding == null) return;
         boolean textChanged = !binding.editor.getText().toString().equals(savedEditorText);
-        boolean metadataChanged = currentFileType == FORMAT_BB
-                && (selectedType != savedType || getSampleRateFromInput() != savedSampleRate);
+        boolean metadataChanged =
+                currentFileType == FORMAT_BB
+                        && (selectedType != savedType
+                                || getSampleRateFromInput() != savedSampleRate);
         isChanged = textChanged || metadataChanged;
     }
 
@@ -844,7 +937,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("current_file", currentFile);
-        outState.putString("current_uri", currentDocumentUri == null ? null : currentDocumentUri.toString());
+        outState.putString(
+                "current_uri", currentDocumentUri == null ? null : currentDocumentUri.toString());
         outState.putBoolean("document_writable", documentWritable);
         outState.putInt("current_file_type", currentFileType);
         outState.putInt("selected_type", selectedType);
