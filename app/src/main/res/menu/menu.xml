@@ -1,61 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:title="File">
         <menu>
-            <item
-                android:id="@+id/newMenu"
-                android:title="New"/>
-
+            <item android:id="@+id/newMenu" android:title="New" />
             <item android:title="Open">
                 <menu>
-                    <item 
-                        android:id="@+id/openBB"
-                        android:title="*.bb"/>
-                        
-                    <item
-                        android:id="@+id/openTxt"
-                        android:title="*.txt"/>
+                    <item android:id="@+id/openBB" android:title="Bytebeat file (.bb)" />
+                    <item android:id="@+id/openTxt" android:title="Text file (.txt)" />
                 </menu>
             </item>
-
-            <item android:title="Save">
+            <item android:title="Save as">
                 <menu>
-                    <item 
-                        android:id="@+id/saveBB"
-                        android:title="*.bb"/>
-                        
-                    <item
-                        android:id="@+id/saveTxt"
-                        android:title="*.txt"/>
+                    <item android:id="@+id/saveBB" android:title="Bytebeat file (.bb)" />
+                    <item android:id="@+id/saveTxt" android:title="Text file (.txt)" />
                 </menu>
             </item>
+            <item android:id="@+id/convertTxtToBb" android:title="Convert TXT to .bb" />
+        </menu>
+    </item>
 
-            <item
-                android:id="@+id/exportMenu"
-                android:title="Export to WAV"/>
-        </menu>
-    </item>
-    
-    <item android:title="Log">
+    <item android:title="Edit">
         <menu>
-            <item
-                android:id="@+id/clearLog"
-                android:title="Clear Log"/>
+            <item android:id="@+id/undo" android:title="Undo" />
+            <item android:id="@+id/redo" android:title="Redo" />
+            <item android:title="Editor text size">
+                <menu>
+                    <item android:id="@+id/zoomIn" android:title="Zoom in" />
+                    <item android:id="@+id/zoomOut" android:title="Zoom out" />
+                </menu>
+            </item>
         </menu>
     </item>
-    
+
+    <item android:title="Appearance">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/themeSystem" android:title="System default" />
+                <item android:id="@+id/themeLight" android:title="Light" />
+                <item android:id="@+id/themeDark" android:title="Dark" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="Log">
+        <menu><item android:id="@+id/clearLog" android:title="Clear log" /></menu>
+    </item>
+
     <item android:title="Application">
         <menu>
-            <item
-                android:id="@+id/aboutApp"
-                android:title="About App..."/>
-
-            <item
-                android:id="@+id/exitApp"
-                android:title="Exit App..."/>
+            <item android:id="@+id/aboutApp" android:title="About" />
+            <item android:id="@+id/exitApp" android:title="Exit" />
         </menu>
     </item>
-
 </menu>
