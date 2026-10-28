@@ -14,9 +14,28 @@
             android:supportsPictureInPicture="true"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
             android:exported="true">
+            
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <!-- Bind your custom MIME type -->
+                <data android:mimeType="application/com.jarredapps.bb" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.bb" />
             </intent-filter>
         </activity>
         <activity android:name=".DebugActivity" android:screenOrientation="portrait" android:theme="@style/AppTheme.DebugActivity" />
