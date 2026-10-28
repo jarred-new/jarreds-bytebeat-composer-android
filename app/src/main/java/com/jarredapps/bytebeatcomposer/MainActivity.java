@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
                                     openBytebeatDocument(fileUri, flags);
                                 } catch (Exception e) {
                                     e.printStackTrace();
+                                    showMessage("Error on load from external app: " + e.getMessage());
                                 }
                             }
                         });
