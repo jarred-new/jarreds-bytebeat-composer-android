@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean documentWritable;
     private int selectedType;
     private int currentFileType = FORMAT_UNKNOWN;
+    private int pendingSaveFormat = FORMAT_UNKNOWN;
     private int savedType;
     private int savedSampleRate = 8000;
     private int editorFontSize = 18;
