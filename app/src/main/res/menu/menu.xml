@@ -18,6 +18,7 @@
                 </menu>
             </item>
             <item android:id="@+id/convertTxtToBb" android:title="Convert TXT to .bb" />
+            <item android:id="@+id/exportWav" android:title="Export to Wav"/>
         </menu>
     </item>
 

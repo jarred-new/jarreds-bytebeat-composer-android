@@ -1,11 +1,14 @@
 package com.jarredapps.bytebeatcomposer;
 
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CONVERT_INPUT = 103;
     private static final int REQUEST_SAVE = 104;
     private static final int REQUEST_SAVE_CONVERTED = 105;
+    private static final int REQUEST_EXPORT = 106;
 
     private static final int MIN_SAMPLE_RATE = 8000;
     private static final int MAX_SAMPLE_RATE = 192000;
@@ -129,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
                                     openBytebeatDocument(fileUri, flags);
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    showMessage("Error on load from external app: " + e.getMessage());
+                                    showMessage(
+                                            "Error on load from external app: " + e.getMessage());
                                 }
                             }
                         });
@@ -279,6 +284,8 @@ public class MainActivity extends AppCompatActivity {
             _saveTxtFile();
         } else if (id == R.id.convertTxtToBb) {
             convertTxtToBB();
+        } else if (id == R.id.exportWav) {
+            launchExport(REQUEST_EXPORT, "exported");
         } else if (id == R.id.undo) {
             undo();
         } else if (id == R.id.redo) {
@@ -528,6 +535,23 @@ public class MainActivity extends AppCompatActivity {
             actionAfterSave = null;
         }
     }
+    
+    private void launchExport(int requestCode, String suggestedName) {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("audio/wav");
+        intent.putExtra(Intent.EXTRA_TITLE, suggestedName + ".wav");
+        intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        try {
+            startActivityForResult(intent, requestCode);
+        } catch (ActivityNotFoundException e) {
+            showMessage("No file picker is available on this device");
+            actionAfterSave = null;
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -537,7 +561,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        Uri uri = data.getData();
+        final Uri uri = data.getData();
         int flags =
                 data.getFlags()
                         & (Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -563,7 +587,47 @@ public class MainActivity extends AppCompatActivity {
                 writeDocument(uri, pendingConvertedJson);
                 pendingConvertedJson = null;
                 showMessage("Converted file saved: " + displayName(uri));
+            } else if (requestCode == REQUEST_EXPORT) {
+                final String formula = binding.editor.getText().toString().trim();
+                final int sampleRate = getSampleRateFromInput();
+
+                final BytebeatType type =
+                        selectedType == 1
+                                ? BytebeatType.BYTEBEAT_SIGNED
+                                : BytebeatType.BYTEBEAT_UNSIGNED;
+
+                final EditText secondsInput = new EditText(this);
+                secondsInput.setSingleLine(true);
+                secondsInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+                secondsInput.setText("10");
+                secondsInput.setHint("Enter your seconds here...");
+
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Enter Seconds:")
+                        .setView(secondsInput)
+                        .setPositiveButton(
+                                "Export",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dia, int which) {
+                                        try {
+                                            exportWav(
+                                                    uri,
+                                                    formula,
+                                                    type,
+                                                    sampleRate,
+                                                    Integer.valueOf(
+                                                            secondsInput.getText().toString(), 1));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                })
+                        .setNegativeButton("Cancel", null)
+                        .setCancelable(false)
+                        .show();
             }
+
         } catch (Exception e) {
             if (requestCode == REQUEST_SAVE) actionAfterSave = null;
             showMessage("File operation failed: " + safeMessage(e));
@@ -766,6 +830,54 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void exportWav(
+            Uri uri,
+            final String formula,
+            final BytebeatType type,
+            final int sampleRate,
+            final int seconds)
+            throws IOException {
+        if (formula == null) throw new IOException("No formula is ready to save");
+        if (type == null) throw new IOException("No bytebeat type is ready to save");
+        if (sampleRate == 0) throw new IOException("No sample rate is ready to save");
+        if (seconds == 0) throw new IOException("No seconds is ready to save");
+
+        final ProgressDialog prog = new ProgressDialog(this);
+        prog.setTitle("Exporting to WAV");
+        prog.setMessage("Please do not close app");
+        prog.setCancelable(false);
+        prog.setCanceledOnTouchOutside(false);
+        prog.show();
+
+        try (OutputStream output = getContentResolver().openOutputStream(uri, "wt")) {
+            if (output == null) throw new IOException("The file could not be opened for writing");
+            new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            Handler handler = new Handler(Looper.getMainLooper());
+                            handler.post(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                WavExporter.export(
+                                                        formula, type, output, sampleRate, seconds);
+
+                                                prog.dismiss();
+                                                
+                                                showMessage("Export Success!");
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                                showMessage("Error: " + e.getMessage());
+                                            }
+                                        }
+                                    });
+                        }
+                    });
+        }
+    }
+
     public void convertTxtToBB() {
         launchOpenDocument(REQUEST_CONVERT_INPUT);
     }
@@ -815,7 +927,7 @@ public class MainActivity extends AppCompatActivity {
         sampleRateInput.setSingleLine(true);
         sampleRateInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
         sampleRateInput.setText("8000");
-        sampleRateInput.setHint("8000");
+        sampleRateInput.setHint("e.g 8000");
         fields.addView(sampleRateInput);
 
         AlertDialog dialog =
