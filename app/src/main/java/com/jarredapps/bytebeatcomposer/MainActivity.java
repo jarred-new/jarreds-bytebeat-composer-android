@@ -535,7 +535,7 @@ public class MainActivity extends AppCompatActivity {
             actionAfterSave = null;
         }
     }
-    
+
     private void launchExport(int requestCode, String suggestedName) {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -602,30 +602,56 @@ public class MainActivity extends AppCompatActivity {
                 secondsInput.setText("10");
                 secondsInput.setHint("Enter your seconds here...");
 
-                new MaterialAlertDialogBuilder(this)
-                        .setTitle("Enter Seconds:")
-                        .setView(secondsInput)
-                        .setPositiveButton(
-                                "Export",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dia, int which) {
-                                        try {
-                                            exportWav(
-                                                    uri,
-                                                    formula,
-                                                    type,
-                                                    sampleRate,
-                                                    Integer.valueOf(
-                                                            secondsInput.getText().toString(), 1));
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                })
-                        .setNegativeButton("Cancel", null)
-                        .setCancelable(false)
-                        .show();
+                AlertDialog durationDialog =
+                        new MaterialAlertDialogBuilder(this)
+                                .setTitle("Export to WAV")
+                                .setMessage("Enter export duration in seconds:")
+                                .setView(secondsInput)
+                                .setPositiveButton("Export", null)
+                                .setNegativeButton("Cancel", null)
+                                .create();
+
+                durationDialog.setOnShowListener(
+                        dialog -> {
+                            durationDialog
+                                    .getButton(DialogInterface.BUTTON_POSITIVE)
+                                    .setOnClickListener(
+                                            v -> {
+                                                String value =
+                                                        secondsInput.getText().toString().trim();
+
+                                                int seconds;
+
+                                                try {
+                                                    seconds = Integer.parseInt(value);
+                                                } catch (NumberFormatException e) {
+                                                    secondsInput.setError("Enter a valid duration");
+                                                    return;
+                                                }
+
+                                                if (seconds <= 0) {
+                                                    secondsInput.setError(
+                                                            "Duration must be greater than zero");
+                                                    return;
+                                                }
+
+                                                durationDialog.dismiss();
+
+                                                try {
+                                                    exportWav(
+                                                            uri,
+                                                            formula,
+                                                            type,
+                                                            sampleRate,
+                                                            seconds);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                    showMessage("WAV Export error: " + e.getMessage());
+                                                }
+                                            });
+                        });
+
+                durationDialog.show();
             }
 
         } catch (Exception e) {
@@ -865,7 +891,7 @@ public class MainActivity extends AppCompatActivity {
                                                         formula, type, output, sampleRate, seconds);
 
                                                 prog.dismiss();
-                                                
+
                                                 showMessage("Export Success!");
                                             } catch (Exception e) {
                                                 e.printStackTrace();
