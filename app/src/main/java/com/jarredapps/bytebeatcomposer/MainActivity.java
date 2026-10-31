@@ -33,6 +33,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.jarredapps.bytebeatcomposer.databinding.MainBinding;
 
+import java.io.BufferedOutputStream;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -637,17 +638,73 @@ public class MainActivity extends AppCompatActivity {
 
                                                 durationDialog.dismiss();
 
-                                                try {
-                                                    exportWav(
-                                                            uri,
-                                                            formula,
-                                                            type,
-                                                            sampleRate,
-                                                            seconds);
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
-                                                    showMessage("WAV Export error: " + e.getMessage());
-                                                }
+                                                final ProgressDialog prog = new ProgressDialog(this);
+                                                prog.setTitle("Exporting To Wav...");
+                                                prog.setMessage("Please, do not close the app");
+                                                prog.setCancelable(false);
+                                                prog.show();
+
+                                                Thread exportThread =
+                                                        new Thread(
+                                                                () -> {
+                                                                    String error = null;
+
+                                                                    try {
+                                                                        OutputStream stream =
+                                                                                getContentResolver()
+                                                                                        .openOutputStream(
+                                                                                                uri,
+                                                                                                "wt");
+
+                                                                        if (stream == null) {
+                                                                            throw new IOException(
+                                                                                    "Cannot open output file");
+                                                                        }
+
+                                                                        try (BufferedOutputStream
+                                                                                output =
+                                                                                        new BufferedOutputStream(
+                                                                                                stream)) {
+
+                                                                            WavExporter.export(
+                                                                                    formula,
+                                                                                    type,
+                                                                                    output,
+                                                                                    sampleRate,
+                                                                                    seconds);
+                                                                        }
+
+                                                                    } catch (IOException e) {
+                                                                        error = e.getMessage();
+
+                                                                        if (error == null) {
+                                                                            error =
+                                                                                    e.getClass()
+                                                                                            .getSimpleName();
+                                                                        }
+
+                                                                        e.printStackTrace();
+                                                                    }
+
+                                                                    final String result = error;
+
+                                                                    runOnUiThread(
+                                                                            () -> {
+                                                                                prog.dismiss();
+
+                                                                                if (result
+                                                                                        == null) {
+                                                                                    showMessage(
+                                                                                            "WAV exported successfully!");
+                                                                                } else {
+                                                                                    showMessage(
+                                                                                            "WAV export failed: "
+                                                                                                    + result);
+                                                                                }
+                                                                            });
+                                                                });
+
+                                                exportThread.start();
                                             });
                         });
 
@@ -853,54 +910,6 @@ public class MainActivity extends AppCompatActivity {
             if (output == null) throw new IOException("The file could not be opened for writing");
             output.write(content.getBytes(StandardCharsets.UTF_8));
             output.flush();
-        }
-    }
-
-    private void exportWav(
-            Uri uri,
-            final String formula,
-            final BytebeatType type,
-            final int sampleRate,
-            final int seconds)
-            throws IOException {
-        if (formula == null) throw new IOException("No formula is ready to save");
-        if (type == null) throw new IOException("No bytebeat type is ready to save");
-        if (sampleRate == 0) throw new IOException("No sample rate is ready to save");
-        if (seconds == 0) throw new IOException("No seconds is ready to save");
-
-        final ProgressDialog prog = new ProgressDialog(this);
-        prog.setTitle("Exporting to WAV");
-        prog.setMessage("Please do not close app");
-        prog.setCancelable(false);
-        prog.setCanceledOnTouchOutside(false);
-        prog.show();
-
-        try (OutputStream output = getContentResolver().openOutputStream(uri, "wt")) {
-            if (output == null) throw new IOException("The file could not be opened for writing");
-            new Thread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            Handler handler = new Handler(Looper.getMainLooper());
-                            handler.post(
-                                    new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                WavExporter.export(
-                                                        formula, type, output, sampleRate, seconds);
-
-                                                prog.dismiss();
-
-                                                showMessage("Export Success!");
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                                showMessage("Error: " + e.getMessage());
-                                            }
-                                        }
-                                    });
-                        }
-                    });
         }
     }
 
