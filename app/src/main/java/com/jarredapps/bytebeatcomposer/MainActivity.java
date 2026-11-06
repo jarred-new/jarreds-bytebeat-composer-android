@@ -24,6 +24,8 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
+import androidx.annotation.CallSuper;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -308,7 +310,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.aboutApp) {
             showAboutDialog();
         } else if (id == R.id.exitApp) {
-            withUnsavedChanges(this::finish);
+            //withUnsavedChanges(this::finish);
+            onBackPressed();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -421,8 +424,7 @@ public class MainActivity extends AppCompatActivity {
     private void showAboutDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("About Jarred's Bytebeat Composer")
-                .setMessage(
-                        "Compose and play bytebeat formulas on Android.\n\nSample rates: 8000–192000 Hz.")
+                .setMessage("Version: 0.0.2-android\nThank you for chosing this app!")
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
@@ -638,7 +640,8 @@ public class MainActivity extends AppCompatActivity {
 
                                                 durationDialog.dismiss();
 
-                                                final ProgressDialog prog = new ProgressDialog(this);
+                                                final ProgressDialog prog =
+                                                        new ProgressDialog(this);
                                                 prog.setTitle("Exporting To Wav...");
                                                 prog.setMessage("Please, do not close the app");
                                                 prog.setCancelable(false);
@@ -1116,5 +1119,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (player.isRunning()) player.stop();
         super.onDestroy();
+    }
+
+    @Override
+    @Deprecated
+    @MainThread
+    @CallSuper
+    public void onBackPressed() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Are you sure to quit?")
+                .setPositiveButton(
+                        "Yes",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                finish();
+                            }
+                        })
+                .setNegativeButton(
+                        "No",
+                        null)
+                .show();
     }
 }
