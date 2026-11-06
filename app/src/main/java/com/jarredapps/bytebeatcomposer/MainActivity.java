@@ -110,6 +110,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             restoreAppState(savedInstanceState);
+        } else {
+            // set defaults
+            binding.editor.setText("t*(42&t>>10)");
+            binding.freqInput.setText("8000");
         }
         initialize();
         initializeLogic(savedInstanceState == null);

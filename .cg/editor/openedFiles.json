@@ -1,0 +1,66 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/WavExporter.java",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 6001,
+          "line": 194
+        },
+        "start": {
+          "column": 1,
+          "index": 6001,
+          "line": 194
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/BytebeatPlayer.java",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 5432,
+          "line": 162
+        },
+        "start": {
+          "column": 0,
+          "index": 5432,
+          "line": 162
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/res/menu/menu.xml",
+      "selection": {
+        "end": {
+          "column": 19,
+          "index": 1498,
+          "line": 33
+        },
+        "start": {
+          "column": 19,
+          "index": 1498,
+          "line": 33
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/MainActivity.java",
+      "selection": {
+        "end": {
+          "column": 27,
+          "index": 4237,
+          "line": 114
+        },
+        "start": {
+          "column": 27,
+          "index": 4237,
+          "line": 114
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android",
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/res/menu/menu.xml"
+}
