@@ -49,18 +49,63 @@
       "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/java/com/jarredapps/bytebeatcomposer/MainActivity.java",
       "selection": {
         "end": {
-          "column": 27,
-          "index": 4237,
-          "line": 114
+          "column": 46,
+          "index": 4308,
+          "line": 115
         },
         "start": {
-          "column": 27,
-          "index": 4237,
-          "line": 114
+          "column": 46,
+          "index": 4308,
+          "line": 115
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/res/layout/main.xml",
+      "selection": {
+        "end": {
+          "column": 46,
+          "index": 3269,
+          "line": 76
+        },
+        "start": {
+          "column": 37,
+          "index": 3260,
+          "line": 76
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/keystore.properties",
+      "selection": {
+        "end": {
+          "column": 24,
+          "index": 24,
+          "line": 0
+        },
+        "start": {
+          "column": 24,
+          "index": 24,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/.gitignore",
+      "selection": {
+        "end": {
+          "column": 19,
+          "index": 1969,
+          "line": 125
+        },
+        "start": {
+          "column": 19,
+          "index": 1969,
+          "line": 125
         }
       }
     }
   ],
   "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android",
-  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/app/src/main/res/menu/menu.xml"
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/jarreds-bytebeat-composer-android/keystore.properties"
 }
